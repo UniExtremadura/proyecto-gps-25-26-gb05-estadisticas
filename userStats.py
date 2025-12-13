@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 from supabaseAuth import gestor_token
 from fastapi import HTTPException, status
 
-def getUserStats (uuid: str, seconds_to_add: int = 0):
+def getUserStats (uuid: str):
     load_dotenv()
 
     token: str = gestor_token.get_token()
@@ -37,7 +37,7 @@ def getUserStats (uuid: str, seconds_to_add: int = 0):
         )
 
     # MINUTOS ESCUCHADOS TOTALES
-    url = f"{os.getenv("CONTENIDOS_SERVICE_BASE_URL")}/users/{uuid}/library"
+    url = f"{os.getenv("CONTENIDOS_SERVICE_BASE_URL")}/users/{uuid}"
 
     try:
         response = requests.get(url, headers=headers, timeout=5)
@@ -45,7 +45,8 @@ def getUserStats (uuid: str, seconds_to_add: int = 0):
         data = response.json()
 
         totalEscuchado = 0
-        for product in data:
+        items = data.get("library", [])
+        for product in items:
             productType = product.get("type")
             if productType == 'Song':
                 item = product.get("item")
@@ -68,35 +69,35 @@ def getUserStats (uuid: str, seconds_to_add: int = 0):
         )
 
     # TOP 5 CANCIONES MÁS ESCUCHADAS
-    url = f"{os.getenv("CONTENIDOS_SERVICE_BASE_URL")}/users/{uuid}/library"
+    url = f"{os.getenv("CONTENIDOS_SERVICE_BASE_URL")}/users/{uuid}"
 
     try:
         response = requests.get(url, headers=headers, timeout=5)
         response.raise_for_status()
         data = response.json()
 
-        duracionTotal = 0
-        cancionesMasEscuchadas = []
-        for product in data:
+        cancionesMasEscuchadas = {}
+        items = data.get("library", [])
+        for product in items:
             productType = product.get("type")
             if productType == 'Song':
                 item = product.get("item")
+                song_id = item.get("uuid")
                 duration = item.get("duration")
                 plays = item.get("plays")
-                duracionTotal += duration * plays
-                cancion = (item, duracionTotal)
-                cancionesMasEscuchadas.append(cancion)
+                cancionesMasEscuchadas[song_id] = cancionesMasEscuchadas.get(song_id, {"song": item, "total": 0})
+                cancionesMasEscuchadas[song_id]["total"] += duration * plays
             elif productType == 'Album':
                 item = product.get("item")
                 songs = item.get("songs", [])
                 for song in songs:
+                    song_id = song.get("uuid")
                     duration = song.get("duration")
                     plays = song.get("plays")
-                    duracionTotal += duration * plays
-                    cancion = (song, duracionTotal)
-                    cancionesMasEscuchadas.append(cancion)
-        cancionesMasEscuchadas.sort(key=lambda x: x[1], reverse=True)
-        cancionesMasEscuchadas = cancionesMasEscuchadas[:5]
+                    cancionesMasEscuchadas[song_id] = cancionesMasEscuchadas.get(song_id, {"song": song, "total": 0})
+                    cancionesMasEscuchadas[song_id]["total"] += duration * plays
+        top5 = sorted(cancionesMasEscuchadas.values(),key=lambda x: x["total"],reverse=True)[:5]
+        cancionesMasEscuchadas = [c["song"] for c in top5]
 
     except requests.exceptions.RequestException as e:
         raise HTTPException(
@@ -104,50 +105,33 @@ def getUserStats (uuid: str, seconds_to_add: int = 0):
         )
 
     #TOP 5 ARTISTAS MÁS ESCUCHADOS
-    url = f"{os.getenv("CONTENIDOS_SERVICE_BASE_URL")}/users/{uuid}/library"
+    url = f"{os.getenv("CONTENIDOS_SERVICE_BASE_URL")}/users/{uuid}"
 
     try:
         response = requests.get(url, headers=headers, timeout=5)
         response.raise_for_status()
         data = response.json()
 
-        duracionTotal = 0
-        artistasMasEscuchados = []
-        for product in data:
+        artistasMasEscuchados = {}
+        items = data.get("library", [])
+        for product in items:
             productType = product.get("type")
             if productType == 'Song':
                 item = product.get("item")
                 duration = item.get("duration")
                 plays = item.get("plays")
-                duracionTotal += duration * plays
                 artist = item.get("author")
-                if not any(c[0] == artist for c in artistasMasEscuchados):
-                    artista = (artist, duracionTotal)
-                    artistasMasEscuchados.append(artista)
-                else:
-                    for i, (artistX, tiempo_total) in enumerate(artistasMasEscuchados):
-                        if artistX == artist:
-                            artistasMasEscuchados[i] = (artistX, tiempo_total + duracionTotal)
-                            break
+                artistasMasEscuchados[artist] = (artistasMasEscuchados.get(artist, 0) + duration * plays)
             elif productType == 'Album':
                 item = product.get("item")
                 songs = item.get("songs", [])
                 for song in songs:
                     duration = song.get("duration")
                     plays = song.get("plays")
-                    duracionTotal += duration * plays
                     artist = item.get("author")
-                    artista = (artist, duracionTotal)
-                    if not any(c[0] == artist for c in artistasMasEscuchados):
-                        artista = (artist, duracionTotal)
-                        artistasMasEscuchados.append(artista)
-                    else:
-                        for i, (artistX, tiempo_total) in enumerate(artistasMasEscuchados):
-                            if artistX == artist:
-                                artistasMasEscuchados[i] = (artistX, tiempo_total + duracionTotal)
-                                break
-        artistasMasEscuchados.sort(key=lambda x: x[1], reverse=True)
-        artistasMasEscuchados = artistasMasEscuchados[:5]
+                    artistasMasEscuchados[artist] = (artistasMasEscuchados.get(artist, 0) + duration * plays)
+        top5 = sorted(artistasMasEscuchados.items(),key=lambda x: x[1],reverse=True)[:5]
+        artistasMasEscuchados = [artista for artista, _ in top5]
 
     except requests.exceptions.RequestException as e:
         raise HTTPException(

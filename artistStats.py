@@ -68,7 +68,11 @@ def getArtistStats (uuid: str):
 
                 responseType = requests.get(urlType, headers=headers, timeout=5)
                 responseData = responseType.json()
-                authorUuid = responseData.get("author").get("uuid")
+
+                if type == "song" or type == "album":
+                    authorUuid = responseData.get("author").get("uuid")
+                elif type == "merch":
+                    authorUuid = responseData.get("reference").get("author").get("uuid")
 
                 if uuid == authorUuid:
                     earn = earn + (priceItem * quantity)
