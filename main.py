@@ -1,11 +1,16 @@
+import os
+
 from artistStats import getArtistStats
 from roleChecker import RoleChecker
 from userStats import getUserStats
 from fastapi import FastAPI, Depends
+from dotenv import load_dotenv
 import redis
 import json
 
-r = redis.Redis(host='localhost', port=6379, db=0, decode_responses=True)
+load_dotenv()
+
+r = redis.Redis(host=os.getenv("ESTADISTICAS_SERVICE_BASE_URL"), port=int(os.getenv("ESTADISTICAS_SERVICE_PORT")), decode_responses=True, username=(os.getenv("ESTADISTICAS_USER")), password=(os.getenv("ESTADISTICAS_PASSWORD")),)
 app = FastAPI()
 
 EXPIRACION = 600  # segundos (10 minutos)
