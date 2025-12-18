@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from fastapi import HTTPException, status, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from supabase import create_client, Client
-from supabaseAuth import gestor_token
+from app.supabaseAuth import gestor_token
 
 load_dotenv()
 url: str = os.getenv("SUPABASE_PROJECT_URL")

@@ -10,11 +10,10 @@ import json
 
 load_dotenv()
 
-r = redis.Redis(host=os.getenv("ESTADISTICAS_SERVICE_BASE_URL"), port=int(os.getenv("ESTADISTICAS_SERVICE_PORT")), decode_responses=True, username=(os.getenv("ESTADISTICAS_USER")), password=(os.getenv("ESTADISTICAS_PASSWORD")),)
+r = redis.Redis(host=os.getenv("REDIS_HOST", "estadisticas-redis"), port=int(os.getenv("REDIS_PORT", 6379)), decode_responses=True)
 app = FastAPI()
 
 EXPIRACION = 600  # segundos (10 minutos)
-
 
 @app.get("/artists/stats")
 def artistStats(current_user: dict = Depends(RoleChecker(["artist"]))):

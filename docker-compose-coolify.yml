@@ -1,0 +1,43 @@
+services:
+  estadisticas:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: estadisticas
+    restart: always
+    ports:
+      - "3300:${PORT}"
+    environment:
+      PORT: ${PORT}
+
+      CONTENIDOS_SERVICE_BASE_URL: ${CONTENIDOS_SERVICE_BASE_URL}
+      USUARIOS_SERVICE_BASE_URL: ${USUARIOS_SERVICE_BASE_URL}
+      COMPRAS_SERVICE_BASE_URL: ${COMPRAS_SERVICE_BASE_URL}
+      FRONTEND_SERVICE_BASE_URL: ${FRONTEND_SERVICE_BASE_URL}
+      ESTADISTICAS_SERVICE_BASE_URL: ${ESTADISTICAS_SERVICE_BASE_URL}
+
+      CONTENIDOS_SERVICE_PORT: ${CONTENIDOS_SERVICE_PORT}
+      USUARIOS_SERVICE_PORT: ${USUARIOS_SERVICE_PORT}
+      COMPRAS_SERVICE_PORT: ${COMPRAS_SERVICE_PORT}
+      ESTADISTICAS_SERVICE_PORT: ${ESTADISTICAS_SERVICE_PORT}
+
+      APP_BASE_URL: ${APP_BASE_URL}
+
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+
+    depends_on:
+      - estadisticas-redis
+
+  estadisticas-redis:
+    image: redis:latest
+    container_name: estadisticas-redis
+    restart: always
+    ports:
+      - "3201:6379"
+    volumes:
+      - estadisticas-redis:/data
+
+volumes:
+  estadisticas-redis:
+
