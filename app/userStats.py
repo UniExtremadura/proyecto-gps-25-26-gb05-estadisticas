@@ -1,7 +1,7 @@
 import os
 import requests
 from dotenv import load_dotenv
-from supabaseAuth import gestor_token
+from app.supabaseAuth import gestor_token
 from fastapi import HTTPException, status
 
 def getUserStats (uuid: str):

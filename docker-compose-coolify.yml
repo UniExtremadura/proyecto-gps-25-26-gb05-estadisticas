@@ -5,8 +5,6 @@ services:
       dockerfile: Dockerfile
     container_name: estadisticas
     restart: always
-    ports:
-      - "3300:${PORT}"
     environment:
       PORT: ${PORT}
 
@@ -21,6 +19,12 @@ services:
       COMPRAS_SERVICE_PORT: ${COMPRAS_SERVICE_PORT}
       ESTADISTICAS_SERVICE_PORT: ${ESTADISTICAS_SERVICE_PORT}
 
+      SUPABASE_PROJECT_URL: ${SUPABASE_PROJECT_URL}
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
+
+      ADMIN_ESTADISTICAS_CORREO: ${ADMIN_ESTADISTICAS_CORREO}
+      ADMIN_ESTADISTICAS_PASSWORD: ${ADMIN_ESTADISTICAS_PASSWORD}
+
       APP_BASE_URL: ${APP_BASE_URL}
 
       REDIS_HOST: ${REDIS_HOST}
@@ -33,8 +37,6 @@ services:
     image: redis:latest
     container_name: estadisticas-redis
     restart: always
-    ports:
-      - "3201:6379"
     volumes:
       - estadisticas-redis:/data
 

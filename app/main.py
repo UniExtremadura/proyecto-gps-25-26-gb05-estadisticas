@@ -1,8 +1,8 @@
 import os
 
-from artistStats import getArtistStats
-from roleChecker import RoleChecker
-from userStats import getUserStats
+from app.artistStats import getArtistStats
+from app.roleChecker import RoleChecker
+from app.userStats import getUserStats
 from fastapi import FastAPI, Depends
 from dotenv import load_dotenv
 import redis
